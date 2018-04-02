@@ -1,11 +1,20 @@
+//Hashing finction from crypto-js
 const SHA256 = require('crypto-js/sha256');
+
+//Declaring blueprint for rnsactions
+class Transaction {
+  constructor(fromAddress, toAddress, amount) {
+    this.fromAddress = fromAddress;
+    this.toAddress = toAddress;
+    this.amount = amount;
+  }
+}
 
 //Declaring blueprint for each Block with a hash made up of all its properties
 class Block {
-  constructor(index, timeStamp, data, previousHash = '') {
-    this.index = index;
+  constructor(timeStamp, transactions, previousHash = '') {
     this.timeStamp = timeStamp;
-    this.data = data;
+    this.transactions = transactions;
     this.previousHash = previousHash;
     this.hash = this.calculateHash();
     this.nonce = 0;
@@ -14,9 +23,8 @@ class Block {
   // will cause any subsequent blocks to be marked as false
   calculateHash() {
     return SHA256(
-      this.index +
-        this.timeStamp +
-        JSON.stringify(this.data) +
+      this.timeStamp +
+        JSON.stringify(this.transactions) +
         this.previousHash +
         this.nonce
     ).toString();
@@ -47,29 +55,74 @@ class Blockchain {
     //Add the difficulty for block mining, add to increase time between new block mines (number specified
     // will be the number of 0s a hash needs to have infront before it is created)
     this.difficulty = 5;
+    //All the transactions made inbetween Blocks are included in this pending array and will be executed on the next hash generation
+    this.pendingTransactions = [];
+    //Reward for generating  hash
+    this.miningReward = 10;
   }
   createGenesisBlock() {
     // Adding data to the first block aka genesis block to start the chain (0 is added as the prev hash because there is none for this block)
-    return new Block(0, '02/04/2018', 'Genesis Block', '0');
+    return new Block('02/04/2018', 'Genesis Block', '0');
   }
   getLatestBlock() {
     return this.chain[this.chain.length - 1];
   }
-  addBlock(newBlock) {
-    newBlock.previousHash = this.getLatestBlock().hash;
-    newBlock.mineBlock(this.difficulty);
-    this.chain.push(newBlock);
+  minePendingTransaction(miningRewardAddress) {
+    //Sets the date of new blocks to the moment they are created and sets the transactions of the new block to all of the pending
+    //transactions
+    let block = new Block(
+      Date.now(),
+      this.pendingTransactions,
+      this.getLatestBlock().hash
+    );
+    block.mineBlock(this.difficulty);
+
+    console.log('Block succesfully mined');
+    this.chain.push(block);
+    //Send the mining reward for mining a new hash to the mining reward address (since this block has just executed all the pending
+    // transactions, we reset the pending transactions array to include only the reward transfer which will be executed once the next
+    // block is mined )
+    this.pendingTransactions = [
+      new Transaction(null, miningRewardAddress, this.miningReward)
+    ];
   }
+
+  createTransaction(transaction) {
+    this.pendingTransactions.push(transaction);
+  }
+
+  //Gets a users balance by checking all transactions theyve made
+  getBalanceOfAddress(address) {
+    let balance = 0;
+
+    //Loop through each block in the chain
+    for (const block of this.chain) {
+      // Then loop through each transaction in each individual block
+      for (const transac of block.transactions) {
+        //If you are the sender of the transaction, remove the amount of the transaction from your wallet
+        if (transac.fromAddress === address) {
+          balance -= transac.amount;
+        }
+
+        // If you are the receiver of the transaction, add the amount of the transaction to your wallet
+        if (transac.toAddress === address) {
+          balance += transac.amount;
+        }
+      }
+    }
+    return balance;
+  }
+
   isChainValid() {
     //Looping from the second block (index 1) as not to include the genesis block
     for (let i = 1; i < this.chain.length; i++) {
       const currentBlock = this.chain[i];
       const previousBlock = this.chain[i - 1];
 
-      //Check if there is just something wrong with the hashing
-      if (currentBlock.hash !== currentBlock.calculateHash()) {
-        return false;
-      }
+      //   //Check if there is just something wrong with the hashing
+      //   if (currentBlock.hash !== currentBlock.calculateHash()) {
+      //     return false;
+      //   }
 
       //Check if the current blocks hash does not match up with the prev blocks hash e.g. something
       //in the previous block has been tampered with
@@ -81,25 +134,37 @@ class Blockchain {
     return true;
   }
 }
+//Create blockchain!!!
 
 let rileyCoin = new Blockchain();
 
-//Create blocks
+// Tests
+//=======
 
-console.log('Mining block 1...');
-rileyCoin.addBlock(new Block(1, '03/04/2018', { amount: 4 }));
-console.log('Mining block 2...');
-rileyCoin.addBlock(new Block(2, '05/04/2018', { amount: 6 }));
-console.log('Mining block 3...');
-rileyCoin.addBlock(new Block(3, '07/04/2018', { amount: 36 }));
+//Node the file to see these tests
+rileyCoin.createTransaction(new Transaction('addressUno', 'addressDos', 100));
+rileyCoin.createTransaction(new Transaction('addressDos', 'addressUno', 50));
 
-// Node this file to see the whole blockchain with below log
+console.log('\n Starting the Miner....');
+rileyCoin.minePendingTransaction('My-mothers-address'); //Mining with 'My Mothers Address', this would be a users id
+
+console.log(
+  '\n The balance of my mother is : ',
+  rileyCoin.getBalanceOfAddress('My-mothers-address')
+);
+
+console.log('\n Starting the Miner....');
+rileyCoin.minePendingTransaction('My-mothers-address');
+
+//Here you will see the added reward balance from the first block mined since it went into the pending array
+console.log(
+  '\n The balance of my mother is : ',
+  rileyCoin.getBalanceOfAddress('My-mothers-address')
+);
+
+//Is the chain valid?
+console.log('Is chain valid? : ', rileyCoin.isChainValid());
+
+// Node to see the whole blockchain with below log
 
 // console.log(JSON.stringify(rileyCoin, null, 4));
-
-//Node this file to see if the chain is valid with below log and add overide changes to see outcome
-
-// console.log('First Is chain valid? : ', rileyCoin.isChainValid());
-// rileyCoin.chain[1].data = { amount: 1000 }; // Change the value exchanged (try to steal an extra 996)
-// rileyCoin.chain[1].calculateHash(); // Re calculate the hash
-// console.log('Second Is chain valid? : ', rileyCoin.isChainValid());
