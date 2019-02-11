@@ -1,14 +1,21 @@
 {
   "name": "js-blockchain",
   "version": "1.0.0",
-  "description": "",
-  "main": "main.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Testing blockchain functionality in Typescript",
+  "main": "./build/index.js",
+  "repository": "https://github.com/rileym11/JS-Blockchain.git",
+  "author": "<32280362+rileym11@users.noreply.github.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^3.3.3"
   },
-  "author": "",
-  "license": "ISC",
+  "scripts": {
+    "build": "rm -rf build && tsc",
+    "start": "yarn build && node ./build/main.js"
+  },
   "dependencies": {
+    "@types/crypto-js": "^3.1.43",
+    "@types/node": "^10.12.24",
     "crypto-js": "^3.1.9-1"
   }
 }

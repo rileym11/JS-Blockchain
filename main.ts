@@ -1,9 +1,16 @@
-//Hashing finction from crypto-js
-const SHA256 = require('crypto-js/sha256');
+import { SHA256 } from 'crypto-js';
+import {
+  TransactionConstructor,
+  BlockConstructor,
+} from './types';
 
-//Declaring blueprint for rnsactions
-class Transaction {
-  constructor(fromAddress, toAddress, amount) {
+//Declaring blueprint for transactions
+class Transaction implements TransactionConstructor {
+  fromAddress: string;
+  toAddress: string;
+  amount: number;
+
+  constructor(fromAddress: string, toAddress: string, amount: number) {
     this.fromAddress = fromAddress;
     this.toAddress = toAddress;
     this.amount = amount;
@@ -11,8 +18,14 @@ class Transaction {
 }
 
 //Declaring blueprint for each Block with a hash made up of all its properties
-class Block {
-  constructor(timeStamp, transactions, previousHash = '') {
+class Block implements BlockConstructor {
+  timeStamp: string | number;
+  transactions: TransactionConstructor[];
+  previousHash: string;
+  hash: string;
+  private nonce: number;
+
+  constructor(timeStamp: string | number, transactions: TransactionConstructor[], previousHash = '') {
     this.timeStamp = timeStamp;
     this.transactions = transactions;
     this.previousHash = previousHash;
@@ -31,7 +44,7 @@ class Block {
   }
   // Block the ability for users to spam block transactions by requiring 'mining' with sufficient
   // computing power based on a certain number of 0s in the hash
-  mineBlock(difficulty) {
+  mineBlock(difficulty: number) {
     while (
       // Run while the indexes up to the difficulty are not all 0s
       this.hash.substring(0, difficulty) !== Array(difficulty + 1).join('0')
@@ -41,6 +54,7 @@ class Block {
       this.hash = this.calculateHash();
     }
     console.log('Block Mined : ', this.hash);
+    console.log('Nonce : ', this.nonce);
   }
 }
 
@@ -49,6 +63,11 @@ class Block {
 
 //Declaring blueprint for the Blockchain with a genesis block made
 class Blockchain {
+  private chain: Block[];
+  private readonly difficulty: number;
+  private pendingTransactions: Transaction[]
+  private readonly miningReward: number;
+
   constructor() {
     //Starting the chain with the genesis block
     this.chain = [this.createGenesisBlock()];
@@ -62,12 +81,15 @@ class Blockchain {
   }
   createGenesisBlock() {
     // Adding data to the first block aka genesis block to start the chain (0 is added as the prev hash because there is none for this block)
-    return new Block('02/04/2018', 'Genesis Block', '0');
+    return new Block(
+      '02/04/2018',
+      [new Transaction('Genesis Block', 'Genesis Block', 0)],
+      '0');
   }
   getLatestBlock() {
     return this.chain[this.chain.length - 1];
   }
-  minePendingTransaction(miningRewardAddress) {
+  minePendingTransaction(miningRewardAddress: string) {
     //Sets the date of new blocks to the moment they are created and sets the transactions of the new block to all of the pending
     //transactions
     let block = new Block(
@@ -78,6 +100,7 @@ class Blockchain {
     block.mineBlock(this.difficulty);
 
     console.log('Block succesfully mined');
+
     this.chain.push(block);
     //Send the mining reward for mining a new hash to the mining reward address (since this block has just executed all the pending
     // transactions, we reset the pending transactions array to include only the reward transfer which will be executed once the next
@@ -87,12 +110,12 @@ class Blockchain {
     ];
   }
 
-  createTransaction(transaction) {
+  createTransaction(transaction: Transaction) {
     this.pendingTransactions.push(transaction);
   }
 
   //Gets a users balance by checking all transactions theyve made
-  getBalanceOfAddress(address) {
+  getBalanceOfAddress(address: string) {
     let balance = 0;
 
     //Loop through each block in the chain
