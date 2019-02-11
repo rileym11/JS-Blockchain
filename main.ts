@@ -78,7 +78,6 @@ class Blockchain {
     //All the transactions made inbetween Blocks are included in this pending array and will be executed on the next hash generation
     this.pendingTransactions = [];
     //Reward for generating  hash
-    console.log('miningReward :', miningReward);
     this.miningReward = miningReward;
   }
   createGenesisBlock() {
