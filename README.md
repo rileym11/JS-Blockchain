@@ -15,3 +15,5 @@ Step 3: Run the Blockchain!
   ```bash
   $ yarn && yarn start
   ```
+
+(Feel free to edit/add/remove the tests at the bottom of `main.ts`)
