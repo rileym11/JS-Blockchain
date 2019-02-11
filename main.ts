@@ -1,4 +1,5 @@
 import { SHA256 } from 'crypto-js';
+import { difficulty, miningReward } from './config';
 import {
   TransactionConstructor,
   BlockConstructor,
@@ -73,11 +74,12 @@ class Blockchain {
     this.chain = [this.createGenesisBlock()];
     //Add the difficulty for block mining, add to increase time between new block mines (number specified
     // will be the number of 0s a hash needs to have infront before it is created)
-    this.difficulty = 5;
+    this.difficulty = difficulty;
     //All the transactions made inbetween Blocks are included in this pending array and will be executed on the next hash generation
     this.pendingTransactions = [];
     //Reward for generating  hash
-    this.miningReward = 10;
+    console.log('miningReward :', miningReward);
+    this.miningReward = miningReward;
   }
   createGenesisBlock() {
     // Adding data to the first block aka genesis block to start the chain (0 is added as the prev hash because there is none for this block)
