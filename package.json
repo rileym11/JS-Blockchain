@@ -7,11 +7,13 @@
   "author": "<32280362+rileym11@users.noreply.github.com>",
   "license": "MIT",
   "devDependencies": {
+    "ts-node": "^8.0.2",
     "typescript": "^3.3.3"
   },
   "scripts": {
     "build": "rm -rf build && tsc",
-    "start": "yarn build && node ./build/main.js"
+    "dev": "ts-node tests.ts",
+    "start": "yarn build && node ./build/tests.js"
   },
   "dependencies": {
     "@types/crypto-js": "^3.1.43",

@@ -6,16 +6,12 @@ import {
 } from './types';
 
 //Declaring blueprint for transactions
-class Transaction implements TransactionConstructor {
-  fromAddress: string;
-  toAddress: string;
-  amount: number;
-
-  constructor(fromAddress: string, toAddress: string, amount: number) {
-    this.fromAddress = fromAddress;
-    this.toAddress = toAddress;
-    this.amount = amount;
-  }
+export class Transaction implements TransactionConstructor {
+  constructor(
+    public fromAddress: string,
+    public toAddress: string,
+    public amount: number,
+  ) {}
 }
 
 //Declaring blueprint for each Block with a hash made up of all its properties
@@ -26,7 +22,7 @@ class Block implements BlockConstructor {
   hash: string;
   private nonce: number;
 
-  constructor(timeStamp: string | number, transactions: TransactionConstructor[], previousHash = '') {
+  constructor(timeStamp: string | number, transactions: Transaction[], previousHash = '') {
     this.timeStamp = timeStamp;
     this.transactions = transactions;
     this.previousHash = previousHash;
@@ -50,7 +46,7 @@ class Block implements BlockConstructor {
       // Run while the indexes up to the difficulty are not all 0s
       this.hash.substring(0, difficulty) !== Array(difficulty + 1).join('0')
     ) {
-      //Nonce provides a non important variable we can change on each run
+      //Nonce provides a non important variable we can change on each run which will alter the hash
       this.nonce++;
       this.hash = this.calculateHash();
     }
@@ -63,7 +59,7 @@ class Block implements BlockConstructor {
 //==================//==================//==================//==================
 
 //Declaring blueprint for the Blockchain with a genesis block made
-class Blockchain {
+export class Blockchain {
   private chain: Block[];
   private readonly difficulty: number;
   private pendingTransactions: Transaction[]
@@ -84,7 +80,7 @@ class Blockchain {
     // Adding data to the first block aka genesis block to start the chain (0 is added as the prev hash because there is none for this block)
     return new Block(
       '02/04/2018',
-      [new Transaction('Genesis Block', 'Genesis Block', 0)],
+      [new Transaction(null, 'Genesis Block', 0)],
       '0');
   }
   getLatestBlock() {
@@ -158,37 +154,3 @@ class Blockchain {
     return true;
   }
 }
-//Create blockchain!!!
-
-let rileyCoin = new Blockchain();
-
-// Tests
-//=======
-
-//Node the file to see these tests
-rileyCoin.createTransaction(new Transaction('addressUno', 'addressDos', 100));
-rileyCoin.createTransaction(new Transaction('addressDos', 'addressUno', 50));
-
-console.log('\n Starting the Miner....');
-rileyCoin.minePendingTransaction('My-mothers-address'); //Mining with 'My Mothers Address', this would be a users id
-
-console.log(
-  '\n The balance of my mother is : ',
-  rileyCoin.getBalanceOfAddress('My-mothers-address')
-);
-
-console.log('\n Starting the Miner....');
-rileyCoin.minePendingTransaction('My-mothers-address');
-
-//Here you will see the added reward balance from the first block mined since it went into the pending array
-console.log(
-  '\n The balance of my mother is : ',
-  rileyCoin.getBalanceOfAddress('My-mothers-address')
-);
-
-//Is the chain valid?
-console.log('Is chain valid? : ', rileyCoin.isChainValid());
-
-// Node to see the whole blockchain with below log
-
-// console.log(JSON.stringify(rileyCoin, null, 4));

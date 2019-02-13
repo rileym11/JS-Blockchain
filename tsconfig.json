@@ -8,6 +8,6 @@
     "outDir": "./build",
     "sourceMap": false
   },
-  "include": ["main.ts"],
+  "include": ["*.ts"],
   "exclude": ["node_modules", "**/*.spec.ts"]
 }
