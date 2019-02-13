@@ -11,9 +11,9 @@ Step 2 (optional): Set the config in `config.ts`
   export const difficulty = 5; // how hard each block is to create (higher number = harder)
   export const miningReward = 10; // how many coins are users rewarded with for successful block creation
   ```
-Step 3: Run the Blockchain!
+Step 3 (optional): Write your own tests in `tests.ts`
+
+Step 4: Run the Blockchain!
   ```bash
   $ yarn && yarn start
   ```
-
-(Feel free to edit/add/remove the tests at the bottom of `main.ts`)
